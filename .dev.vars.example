@@ -1,0 +1,5 @@
+# Copy to .dev.vars for local development with `npm run dev`.
+IG_APP_SECRET=your-instagram-app-secret
+WEBHOOK_VERIFY_TOKEN=some-long-random-string
+ADMIN_PASSWORD=change-me
+SESSION_SECRET=another-long-random-string

@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Manyspace</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💬</text></svg>">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div id="login" class="login hidden">
+    <form id="login-form" class="card login-card">
+      <div class="brand"><span class="logo">💬</span> Manyspace</div>
+      <p class="muted">Instagram comment → DM automation</p>
+      <label>Password
+        <input type="password" id="login-password" autocomplete="current-password" required autofocus>
+      </label>
+      <button class="btn primary" type="submit">Log in</button>
+      <p id="login-error" class="error"></p>
+    </form>
+  </div>
+
+  <div id="app" class="hidden">
+    <header class="topbar">
+      <div class="brand"><span class="logo">💬</span> Manyspace</div>
+      <nav class="tabs" id="tabs">
+        <button data-tab="automations" class="active">Automations</button>
+        <button data-tab="activity">Activity</button>
+        <button data-tab="contacts">Contacts</button>
+        <button data-tab="setup">Setup</button>
+      </nav>
+      <div class="account-chip" id="account-chip"></div>
+      <button class="btn ghost small" id="logout">Log out</button>
+    </header>
+
+    <div id="flash" class="flash hidden"></div>
+
+    <main>
+      <section id="tab-automations" class="tab">
+        <div class="stats" id="stats"></div>
+        <div class="section-head">
+          <h2>Automations</h2>
+          <button class="btn primary" id="new-automation">+ New automation</button>
+        </div>
+        <div id="automation-list" class="automation-list"></div>
+
+        <div class="card tester">
+          <h3>Try it</h3>
+          <p class="muted">Type a comment to see which automation would answer it. Nothing is sent.</p>
+          <div class="row">
+            <select id="test-type">
+              <option value="comment">Comment</option>
+              <option value="dm">DM</option>
+            </select>
+            <input id="test-text" placeholder="e.g. LINK please!">
+            <button class="btn" id="test-run">Test</button>
+          </div>
+          <p id="test-result" class="test-result"></p>
+        </div>
+      </section>
+
+      <section id="tab-activity" class="tab hidden">
+        <div class="section-head">
+          <h2>Activity</h2>
+          <button class="btn ghost" id="activity-refresh">Refresh</button>
+        </div>
+        <div class="card table-wrap"><table id="activity-table"></table></div>
+      </section>
+
+      <section id="tab-contacts" class="tab hidden">
+        <div class="section-head"><h2>Contacts</h2></div>
+        <div class="card table-wrap"><table id="contacts-table"></table></div>
+      </section>
+
+      <section id="tab-setup" class="tab hidden">
+        <h2>Setup</h2>
+        <div id="problems"></div>
+        <div class="card" id="connection"></div>
+        <div class="card">
+          <h3>Webhook settings for the Meta App Dashboard</h3>
+          <p class="muted">Meta App Dashboard → your app → Instagram → API setup with Instagram login → <b>Configure webhooks</b>.</p>
+          <div class="kv"><span>Callback URL</span><code id="webhook-url"></code><button class="btn small" data-copy="webhook-url">Copy</button></div>
+          <div class="kv"><span>Verify token</span><code>The value of your WEBHOOK_VERIFY_TOKEN secret</code></div>
+          <div class="kv"><span>Subscribe to fields</span><code>comments, messages</code></div>
+          <h3>Instagram business login settings</h3>
+          <div class="kv"><span>OAuth redirect URI</span><code id="redirect-uri"></code><button class="btn small" data-copy="redirect-uri">Copy</button></div>
+          <div class="kv"><span>Privacy policy URL</span><code id="privacy-url"></code><button class="btn small" data-copy="privacy-url">Copy</button></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="editor">
+    <form id="editor-form" method="dialog">
+      <h2 id="editor-title">New automation</h2>
+
+      <label>Name
+        <input name="name" placeholder="Free guide reel" required>
+      </label>
+
+      <fieldset>
+        <legend>When someone…</legend>
+        <label class="radio"><input type="radio" name="triggerType" value="comment" checked> comments on a post or reel</label>
+        <label class="radio"><input type="radio" name="triggerType" value="dm"> sends me a DM</label>
+      </fieldset>
+
+      <fieldset id="media-fieldset">
+        <legend>On which posts?</legend>
+        <label class="radio"><input type="radio" name="mediaScope" value="any" checked> Any post or reel</label>
+        <label class="radio"><input type="radio" name="mediaScope" value="specific"> Specific posts or reels</label>
+        <div id="media-picker" class="media-picker hidden"></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Containing…</legend>
+        <label class="radio"><input type="radio" name="matchMode" value="keywords" checked> any of these keywords</label>
+        <label class="radio"><input type="radio" name="matchMode" value="exact"> exactly one of these keywords (nothing else)</label>
+        <label class="radio"><input type="radio" name="matchMode" value="any"> anything at all</label>
+        <input name="keywords" id="keywords-input" placeholder="LINK, guide, 🔥  (comma separated, not case sensitive)">
+      </fieldset>
+
+      <fieldset>
+        <legend>Send this DM</legend>
+        <textarea name="dmText" rows="4" placeholder="Hey! 👋 Here's the free guide you asked for:" required></textarea>
+        <div class="hint"><span id="dm-count">0</span> characters</div>
+        <div class="row">
+          <label class="grow">Button label (optional)
+            <input name="buttonTitle" maxlength="20" placeholder="Get the guide">
+          </label>
+          <label class="grow2">Button link
+            <input name="buttonUrl" type="url" placeholder="https://…">
+          </label>
+        </div>
+      </fieldset>
+
+      <fieldset id="replies-fieldset">
+        <legend>Reply publicly to the comment (optional)</legend>
+        <textarea name="publicReplies" rows="3" placeholder="One per line. A random one is used each time, e.g.&#10;Sent you a DM! 📩&#10;Check your inbox 🙌"></textarea>
+      </fieldset>
+
+      <label class="check"><input type="checkbox" name="oncePerUser"> Only send once per person</label>
+      <label class="check"><input type="checkbox" name="enabled" checked> Active</label>
+
+      <p id="editor-error" class="error"></p>
+      <div class="dialog-actions">
+        <button class="btn ghost" type="button" id="editor-cancel">Cancel</button>
+        <button class="btn primary" type="submit" id="editor-save">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="/app.js"></script>
+</body>
+</html>

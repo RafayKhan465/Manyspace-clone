@@ -1,0 +1,30 @@
+name = "manyspace"
+main = "src/index.js"
+compatibility_date = "2025-09-01"
+
+# The dashboard (public/) is served as static assets; everything else
+# (/webhook, /api/*, /auth/*) falls through to the Worker.
+[assets]
+directory = "./public"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "manyspace"
+# Replace with the id printed by: npx wrangler d1 create manyspace
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+migrations_dir = "migrations"
+
+# Daily job: refresh the Instagram token before it expires (60 days) and prune old data.
+[triggers]
+crons = ["17 4 * * *"]
+
+[vars]
+# Instagram App ID from Meta App Dashboard → Instagram → "API setup with Instagram login".
+IG_APP_ID = ""
+GRAPH_API_VERSION = "v23.0"
+
+# Secrets — set with `npx wrangler secret put <NAME>` (never put them in this file):
+#   IG_APP_SECRET         Instagram App Secret (same page as IG_APP_ID)
+#   WEBHOOK_VERIFY_TOKEN  any random string; paste the same value into Meta's webhook settings
+#   ADMIN_PASSWORD        password for the dashboard
+#   SESSION_SECRET        (optional) random string used to sign dashboard logins

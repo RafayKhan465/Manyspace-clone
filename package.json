@@ -1,0 +1,21 @@
+{
+  "name": "manyspace",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Self-hosted ManyChat-style Instagram automation on Cloudflare Workers: auto-DM people who comment a keyword on your posts and reels.",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:init": "wrangler d1 migrations apply manyspace --remote",
+    "db:init:local": "wrangler d1 migrations apply manyspace --local",
+    "test": "node --test --no-warnings test/*.test.js"
+  },
+  "engines": {
+    "node": ">=22.13"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^4.40.0"
+  }
+}
